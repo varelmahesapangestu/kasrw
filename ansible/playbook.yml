@@ -1,0 +1,80 @@
+---
+# =========================
+# PLAY 1: VM DATABASE
+# =========================
+- name: Konfigurasi VM Database
+  hosts: database
+  become: true
+
+  vars:
+    # Autentikasi Ansible
+    ansible_user: vagrant
+    ansible_password: vagrant
+
+    # Konfigurasi Database
+    db_name: kasrw
+    db_user: kasrw_user
+    db_password: "password123"
+    db_host: "192.168.56.11"
+
+  tasks:
+    # Update Repository
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+
+    # Install MySQL
+    - name: Install MySQL Server
+      ansible.builtin.apt:
+        name: mysql-server
+        state: present
+
+    # Install dependency
+    - name: Install python3-pymysql
+      ansible.builtin.apt:
+        name: python3-pymysql
+        state: present
+
+    # Start MySQL
+    - name: Memastikan MySQL berjalan
+      ansible.builtin.service:
+        name: mysql
+        state: started
+        enabled: true
+
+- name: Konfigurasi vm-frontend
+  hosts: frontend
+  become: true
+  vars:                                
+    ansible_password: vagrant          
+
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: Install Nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+
+    - name: Memastikan Nginx berjalan
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+
+    - name: Membuat halaman html sederhana
+      ansible.builtin.copy:
+        dest: /var/www/html/index.html
+        content: |                       
+          <html>
+            <head>
+              <title>Selamat Datang di vm-frontend</title>
+            </head>
+            <body>
+              <h1>Selamat Datang di vm-frontend</h1>
+              <p>Ini adalah halaman depan yang terhubung ke database server.</p>
+            </body>
+          </html>
+        
